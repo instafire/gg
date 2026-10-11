@@ -1,0 +1,10 @@
+[
+  "tests/test_client.py::test_api_key_header_sent",
+  "tests/test_client.py::test_create_post_body",
+  "tests/test_client.py::test_follow_and_search",
+  "tests/test_client.py::test_poll_results_and_debate_calls",
+  "tests/test_client.py::test_poll_vote_payload_variants",
+  "tests/test_client.py::test_problem_json_error_surfaces_verbatim",
+  "tests/test_client.py::test_reply_and_vote_paths",
+  "tests/test_client.py::test_thread_and_post_gets"
+]

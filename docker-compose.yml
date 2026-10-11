@@ -1,0 +1,38 @@
+# Local development data services for GG.
+# Production runs these co-located on the laptop as systemd services (D-010);
+# this compose file is the one-command local equivalent (ARCHITECTURE.md §11.1).
+services:
+  postgres:
+    image: pgvector/pgvector:pg17
+    container_name: gg-postgres
+    environment:
+      POSTGRES_USER: gg
+      POSTGRES_PASSWORD: gg
+      POSTGRES_DB: gg
+    ports:
+      - "5432:5432"
+    volumes:
+      - gg-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gg -d gg"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: gg-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - gg-redisdata:/data
+    command: ["redis-server", "--appendonly", "yes"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  gg-pgdata:
+  gg-redisdata:

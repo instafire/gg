@@ -1,0 +1,260 @@
+/*
+ * GG design tokens — single source of truth (docs/DESIGN_SYSTEM.md §12).
+ * Components consume the semantic tokens (--bg, --surface, --text, --accent…)
+ * and never raw palette values. Raw palette is namespaced --gg-*.
+ * Themes: <html data-theme="light|dark|amoled">; accent overrides via
+ * [data-accent="sky|violet|mint|coral|lime"] (amber is the default).
+ */
+
+:root {
+  /* ── Raw palette (genznewz.com brand, DESIGN_SYSTEM §2.1) ── */
+  --gg-amber-500: #ffbf47;
+  --gg-amber-600: #f0ab1f;
+  --gg-amber-400: #ffcf73;
+  --gg-amber-100: #fff3d6;
+  --gg-ink-900: #111827;
+  --gg-ink-700: #2b3442;
+  --gg-ink-500: #5b6472;
+  --gg-ink-100: #d9dee8;
+  --gg-paper-0: #ffffff;
+  --gg-paper-50: #f4f6fa;
+  --gg-night-900: #121212;
+  --gg-night-800: #181818;
+  --gg-night-700: #212121;
+  --gg-night-border: #2e2e2e;
+  --gg-focus-500: #2e5cff;
+  --gg-success-500: #1f9d66;
+  --gg-danger-500: #e5484d;
+  --gg-danger-600: #d13438;
+  --gg-warning-500: #e8930c;
+  --gg-info-500: #2e5cff;
+  /* Brand accent alias */
+  --gg-accent: #ffbf47;
+  --gg-accent-ink: #101010;
+
+  /* ── Type (§3) ── */
+  --font-display: "Space Grotesk", "Inter", system-ui, sans-serif;
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-body: var(--font-sans);
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --font-size-display-xl: 3.052rem;
+  --font-size-display-lg: 2.441rem;
+  --font-size-h1: 1.953rem;
+  --font-size-h2: 1.563rem;
+  --font-size-h3: 1.25rem;
+  --font-size-body-lg: 1.125rem;
+  --font-size-body: 1rem;
+  --font-size-body-sm: 0.875rem;
+  --font-size-caption: 0.75rem;
+  --font-size-overline: 0.6875rem;
+  --font-size-mono: 0.8125rem;
+
+  /* ── Spacing (§4.1, 4px base) ── */
+  --space-0: 0;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+
+  /* ── Radius (§4.2) ── */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
+
+  /* ── Elevation (§4.3) ── */
+  --shadow-none: none;
+  --shadow-soft: 0 16px 40px rgba(15, 23, 42, 0.08);
+  --shadow-lift: 0 8px 24px rgba(15, 23, 42, 0.12);
+  --shadow-modal: 0 24px 64px rgba(15, 23, 42, 0.2);
+
+  /* ── Motion (§5) ── */
+  --dur-instant: 80ms;
+  --dur-fast: 120ms;
+  --dur-base: 180ms;
+  --dur-panel: 240ms;
+  --dur-page: 320ms;
+  --dur-celebrate: 480ms;
+  --ease-enter: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-exit: cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-standard: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* ── Interaction ── */
+  --touch-min: 48px;
+}
+
+/* ── Semantic tokens — Light (default) ─────────────────────────────── */
+:root,
+[data-theme="light"] {
+  --bg: #ffffff;
+  --bg-muted: #f4f6fa;
+  --surface: #ffffff;
+  --surface-raised: #ffffff;
+  --surface-sunken: #f4f6fa;
+  --text: #111827;
+  --text-soft: #2b3442;
+  --text-muted: #5b6472;
+  --border: #d9dee8;
+  --border-strong: #b9c2d2;
+  --accent: #ffbf47;
+  --accent-hover: #f0ab1f;
+  --accent-ink: #101010;
+  --accent-tint: #fff3d6;
+  --focus: #2e5cff;
+  --link: #1f4fd6;
+  --success: #1f9d66;
+  --danger: #e5484d;
+  --warning: #e8930c;
+  --skeleton: #e8ecf3;
+  --overlay: rgba(17, 24, 39, 0.56);
+  --side-for: #1f9d66;
+  --side-against: #e5484d;
+  --side-nuanced: #7c5cd6;
+}
+
+/* ── Semantic tokens — Dark ────────────────────────────────────────── */
+[data-theme="dark"] {
+  --bg: #121212;
+  --bg-muted: #121212;
+  --surface: #181818;
+  --surface-raised: #212121;
+  --surface-sunken: #0d0d0d;
+  --text: #f2f4f8;
+  --text-soft: #c9d1de;
+  --text-muted: #9aa4b2;
+  --border: #2e2e2e;
+  --border-strong: #454545;
+  --accent: #ffbf47;
+  --accent-hover: #ffcf73;
+  --accent-ink: #101010;
+  --accent-tint: #3a2f14;
+  --focus: #2e5cff;
+  --link: #7ea2ff;
+  --success: #34c07c;
+  --danger: #ff6369;
+  --warning: #f5a623;
+  --skeleton: #242424;
+  --overlay: rgba(0, 0, 0, 0.72);
+  --side-for: #34c07c;
+  --side-against: #ff6369;
+  --side-nuanced: #a78bfa;
+  --shadow-soft: 0 16px 40px rgba(0, 0, 0, 0.45);
+}
+
+/* ── Semantic tokens — AMOLED (true black) ─────────────────────────── */
+[data-theme="amoled"] {
+  --bg: #000000;
+  --bg-muted: #000000;
+  --surface: #0a0a0a;
+  --surface-raised: #141414;
+  --surface-sunken: #000000;
+  --text: #f2f4f8;
+  --text-soft: #c9d1de;
+  --text-muted: #9aa4b2;
+  --border: #262626;
+  --border-strong: #454545;
+  --accent: #ffbf47;
+  --accent-hover: #ffcf73;
+  --accent-ink: #101010;
+  --accent-tint: #3a2f14;
+  --focus: #2e5cff;
+  --link: #7ea2ff;
+  --success: #34c07c;
+  --danger: #ff6369;
+  --warning: #f5a623;
+  --skeleton: #161616;
+  --overlay: rgba(0, 0, 0, 0.72);
+  --side-for: #34c07c;
+  --side-against: #ff6369;
+  --side-nuanced: #a78bfa;
+  --shadow-soft: 0 16px 40px rgba(0, 0, 0, 0.45);
+}
+
+/* ── Accent picker (§2.5) — interactive highlights only, never sides ── */
+[data-accent="sky"] {
+  --accent: #38bdf8;
+  --accent-hover: #0ea5e9;
+  --accent-tint: #e0f4fe;
+  --accent-ink: #101010;
+}
+[data-accent="violet"] {
+  --accent: #a78bfa;
+  --accent-hover: #8b5cf6;
+  --accent-tint: #efe9ff;
+  --accent-ink: #101010;
+}
+[data-accent="mint"] {
+  --accent: #34d399;
+  --accent-hover: #10b981;
+  --accent-tint: #dcf7ec;
+  --accent-ink: #101010;
+}
+[data-accent="coral"] {
+  --accent: #fb7185;
+  --accent-hover: #f43f5e;
+  --accent-tint: #ffe4e9;
+  --accent-ink: #101010;
+}
+[data-accent="lime"] {
+  --accent: #a3e635;
+  --accent-hover: #84cc16;
+  --accent-tint: #f2fbd9;
+  --accent-ink: #101010;
+}
+[data-theme="dark"][data-accent="sky"],
+[data-theme="amoled"][data-accent="sky"] {
+  --accent: #7dd3fc;
+  --accent-hover: #bae6fd;
+  --accent-tint: #12303f;
+}
+[data-theme="dark"][data-accent="violet"],
+[data-theme="amoled"][data-accent="violet"] {
+  --accent: #c4b5fd;
+  --accent-hover: #ddd6fe;
+  --accent-tint: #2c2145;
+}
+[data-theme="dark"][data-accent="mint"],
+[data-theme="amoled"][data-accent="mint"] {
+  --accent: #6ee7b7;
+  --accent-hover: #a7f3d0;
+  --accent-tint: #123528;
+}
+[data-theme="dark"][data-accent="coral"],
+[data-theme="amoled"][data-accent="coral"] {
+  --accent: #fda4af;
+  --accent-hover: #fecdd3;
+  --accent-tint: #3f1d26;
+}
+[data-theme="dark"][data-accent="lime"],
+[data-theme="amoled"][data-accent="lime"] {
+  --accent: #bef264;
+  --accent-hover: #d9f99d;
+  --accent-tint: #2e3d12;
+}
+
+/* ── Brand focus standard (§9.2) — keyboard focus only ─────────────── */
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+
+/* ── Reduced motion (§5.4) — movement becomes crossfades ───────────── */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-instant: 0ms;
+    --dur-fast: 120ms;
+    --dur-base: 120ms;
+    --dur-panel: 120ms;
+    --dur-page: 120ms;
+    --dur-celebrate: 120ms;
+  }
+}
