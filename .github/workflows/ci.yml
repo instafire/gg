@@ -60,6 +60,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # The media pipeline tests shell out to ffmpeg (HLS transcode);
+      # current ubuntu-latest images do NOT ship it.
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
       - name: Lint
         run: pnpm lint
 
@@ -139,6 +144,17 @@ jobs:
 
       - name: Build API and worker
         run: pnpm build --filter=@gg/api --filter=@gg/worker
+
+      # The web build below is a direct package build (no Turbo), so the
+      # workspace packages it imports (@gg/sdk, @gg/ui, ...) must be built
+      # first — a pristine checkout has no dist/ for them.
+      - name: Build web workspace dependencies
+        run: pnpm build --filter=@gg/web^...
+
+      # The media spec spawns the built worker, which transcodes with
+      # ffmpeg; current ubuntu-latest images do NOT ship it.
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
 
       # Per e2e/README.md: the web app is built into .next-e2e with the
       # API base URL baked to the e2e API instance on :4100.
