@@ -247,7 +247,7 @@ export function optionalAuth(ctx: AppContext) {
  * credentials must hold the scope or the request is 403.
  */
 export function requireScope(scope: ApiScope) {
-  return async (request: FastifyRequest, _reply: FastifyReply): Promise<void> => {
+  return async (request: FastifyRequest): Promise<void> => {
     const info = request.authInfo;
     if (!info) throw unauthorized();
     if (info.scopes === null) return;

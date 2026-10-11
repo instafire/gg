@@ -45,7 +45,6 @@ import {
   type DebateRow,
   type DebateSideRow,
   type DebateWire,
-  type EvidenceWire,
   evidenceWire,
 } from "../lib/serializers";
 import { effectiveTrustTier } from "../lib/trust-tier";
