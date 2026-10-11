@@ -77,6 +77,8 @@ export async function registerSearchRoutes(
       : sql`c.visibility <> 'private'`;
     return and(
       isNull(posts.deletedAt),
+      // Stories surface via rings only, never as search post cards.
+      ne(posts.type, "STORY"),
       postPublishedCondition(viewerId),
       inArray(posts.visibility, ["public", "community"]),
       ne(users.status, "deactivated"),

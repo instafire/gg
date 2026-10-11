@@ -2110,6 +2110,19 @@ export class GGClient {
     return Array.isArray(data) ? data.map(normalizeStoryGroup) : [];
   }
 
+  /**
+   * GET /api/v1/users/{handle}/stories — the user's active story group for
+   * the profile ring, or null when they have no visible active story.
+   */
+  async getUserStories(handle: string): Promise<StoryGroupView | null> {
+    const raw = await this.request<Wire>(
+      `/api/v1/users/${encodeURIComponent(handle)}/stories`,
+      { anonymous: this.accessToken === null },
+    );
+    const data = isWire(raw) ? raw["data"] : undefined;
+    return data && typeof data === "object" ? normalizeStoryGroup(data as Wire) : null;
+  }
+
   /** GET /api/v1/stories/{id} */
   async getStory(storyId: string): Promise<StoryView> {
     const raw = await this.request<Wire>(`/api/v1/stories/${storyId}`, {

@@ -20,7 +20,7 @@ const GENERIC_ERROR =
 function VerifyEmailInner() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { status, refreshUser } = useSession();
+  const { status, user, refreshUser } = useSession();
   const token = searchParams.get("token");
   const [phase, setPhase] = useState<Phase>({ kind: "verifying" });
   const startedRef = useRef(false);
@@ -55,11 +55,18 @@ function VerifyEmailInner() {
     // is what prevents a second (token-burning) call.
   }, [token]);
 
+  // A fresh account verifies BEFORE it ever sees onboarding — sending it
+  // straight to /home skipped onboarding entirely (found in the 2026-10-11
+  // UI pass: every verified signup landed on the feed with no topics,
+  // communities, or follows). Route by onboarding state, same as the
+  // login/register flows.
+  const destination = user?.onboardingCompletedAt ? "/home" : "/onboarding";
+
   useEffect(() => {
     if (phase.kind !== "success" || status !== "authenticated") return;
-    const timer = setTimeout(() => router.replace("/home"), 1500);
+    const timer = setTimeout(() => router.replace(destination), 1500);
     return () => clearTimeout(timer);
-  }, [phase, status, router]);
+  }, [phase, status, router, destination]);
 
   return (
     <AuthCard
@@ -85,10 +92,10 @@ function VerifyEmailInner() {
           {status === "authenticated" ? (
             <Button
               type="button"
-              onClick={() => router.replace("/home")}
+              onClick={() => router.replace(destination)}
               data-testid="verify-email-continue"
             >
-              Go to GG home
+              {user?.onboardingCompletedAt ? "Go to GG home" : "Continue to setup"}
             </Button>
           ) : (
             <Link href="/login" className="text-sm font-medium text-link hover:underline">

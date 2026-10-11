@@ -134,36 +134,45 @@ export class FfmpegTranscoder implements TranscoderAdapter {
     const hlsDir = store.localPath(hlsDirKey);
     await mkdir(hlsDir, { recursive: true });
 
-    for (const height of heights) {
-      const args = [
-        "-y",
-        "-i",
-        sourcePath,
-        "-map",
-        "0:v:0",
-        "-vf",
-        `scale=-2:${height}`,
-        "-c:v",
-        "libx264",
-        "-profile:v",
-        "main",
-        "-pix_fmt",
-        "yuv420p",
-        "-b:v",
-        `${BITRATE_KBPS[height] ?? 800}k`,
-        "-hls_time",
-        "6",
-        "-hls_playlist_type",
-        "vod",
-        "-hls_segment_filename",
-        path.join(hlsDir, `${height}p-seg-%05d.ts`),
-      ];
-      if (probe.hasAudio) {
-        args.push("-map", "0:a:0?", "-c:a", "aac", "-b:a", "128k", "-ac", "2");
-      }
-      args.push(path.join(hlsDir, `${height}p.m3u8`));
-      await execFileAsync("ffmpeg", args, { maxBuffer: 16 * 1024 * 1024 });
-    }
+    // Rungs encode in parallel and at `veryfast`: the staging host is a
+    // 2010-era dual-core, where the previous serial encodes at the default
+    // (medium) preset took ~80s for a 90s 720p clip and users watched the
+    // composer sit on "Processing…" until it timed out. veryfast + parallel
+    // rungs cut that to roughly a third at the same bitrates.
+    await Promise.all(
+      heights.map(async (height) => {
+        const args = [
+          "-y",
+          "-i",
+          sourcePath,
+          "-map",
+          "0:v:0",
+          "-vf",
+          `scale=-2:${height}`,
+          "-c:v",
+          "libx264",
+          "-preset",
+          "veryfast",
+          "-profile:v",
+          "main",
+          "-pix_fmt",
+          "yuv420p",
+          "-b:v",
+          `${BITRATE_KBPS[height] ?? 800}k`,
+          "-hls_time",
+          "6",
+          "-hls_playlist_type",
+          "vod",
+          "-hls_segment_filename",
+          path.join(hlsDir, `${height}p-seg-%05d.ts`),
+        ];
+        if (probe.hasAudio) {
+          args.push("-map", "0:a:0?", "-c:a", "aac", "-b:a", "128k", "-ac", "2");
+        }
+        args.push(path.join(hlsDir, `${height}p.m3u8`));
+        await execFileAsync("ffmpeg", args, { maxBuffer: 16 * 1024 * 1024 });
+      }),
+    );
 
     // Master playlist (bandwidth figures are nominal per-rung estimates).
     const master = [

@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, isNull, lt, notInArray, or, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull, lt, ne, notInArray, or, sql } from "drizzle-orm";
 import type { FastifyInstance, FastifyRequest } from "fastify";
 import { z } from "zod";
 import type { AppContext } from "../context";
@@ -44,6 +44,13 @@ async function joinedCommunityIds(ctx: AppContext, viewerId: string): Promise<st
   return rows.map((r) => r.id);
 }
 
+/**
+ * Stories are posts rows (type STORY) with their media in the stories
+ * extension — as feed cards they render as empty posts. No post-listing
+ * surface may include them; rings/stories endpoints are the only readers.
+ */
+const notStory = () => ne(posts.type, "STORY");
+
 export async function registerFeedRoutes(
   app: FastifyInstance,
   ctx: AppContext,
@@ -63,6 +70,7 @@ export async function registerFeedRoutes(
         and(
           isNull(posts.deletedAt),
           isNull(posts.parentId),
+          notStory(),
           postPublishedCondition(me.sub),
           hidden.length > 0 ? notInArray(posts.authorId, hidden) : undefined,
           or(
@@ -184,6 +192,7 @@ export async function registerFeedRoutes(
         and(
           isNull(posts.deletedAt),
           isNull(posts.parentId),
+          notStory(),
           postPublishedCondition(me.sub),
           sql`${posts.createdAt} > now() - interval '7 days'`,
           hidden.length > 0 ? notInArray(posts.authorId, hidden) : undefined,
@@ -300,6 +309,7 @@ export async function registerFeedRoutes(
         and(
           isNull(posts.deletedAt),
           isNull(posts.parentId),
+          notStory(),
           postPublishedCondition(viewerId),
           eq(posts.visibility, "public"),
           hidden.length > 0 ? notInArray(posts.authorId, hidden) : undefined,

@@ -32,7 +32,7 @@ import {
 } from "../lib/serializers";
 import { parseBody } from "../lib/validate";
 import { getMediaById } from "../services/media";
-import { authorRefFor, profileMap } from "../services/users";
+import { authorRefFor, getUserByHandle, profileMap } from "../services/users";
 
 export const STORY_TTL_MS = 24 * 60 * 60 * 1000;
 
@@ -263,6 +263,65 @@ export async function registerStoryRoutes(
         return bLatest.localeCompare(aLatest);
       });
       return { data: groupWires };
+    },
+  );
+
+  // ── One user's active stories (profile ring) ────────────────────────────
+  // Profiles need a story indicator for ANY user, not just followed ones
+  // (the feed only covers followees). Returns the same group wire shape as
+  // /stories/feed, or data:null when the user has no visible active story.
+  app.get(
+    "/api/v1/users/:handle/stories",
+    { preHandler: optionalAuth(ctx) },
+    async (request) => {
+      const { handle } = request.params as { handle: string };
+      const viewerId = request.authUser?.sub ?? null;
+      const user = await getUserByHandle(db, handle);
+      if (!user) throw notFound("User not found");
+      const now = new Date();
+      const rows = await db
+        .select({ story: stories, authorId: posts.authorId })
+        .from(stories)
+        .innerJoin(posts, eq(posts.id, stories.postId))
+        .where(
+          and(
+            eq(posts.authorId, user.id),
+            gt(stories.expiresAt, now),
+            sql`${posts.deletedAt} is null`,
+          ),
+        )
+        .orderBy(desc(stories.createdAt));
+      let visible = rows;
+      if (viewerId !== user.id) {
+        let isCloseFriend = false;
+        if (viewerId) {
+          const [friend] = await db
+            .select()
+            .from(closeFriends)
+            .where(
+              and(
+                eq(closeFriends.ownerId, user.id),
+                eq(closeFriends.friendId, viewerId),
+              ),
+            )
+            .limit(1);
+          isCloseFriend = Boolean(friend);
+        }
+        visible = rows.filter(
+          (r) => r.story.audience !== "close_friends" || isCloseFriend,
+        );
+      }
+      if (visible.length === 0) return { data: null };
+      const author = await authorRefFor(db, user.id);
+      if (!author) return { data: null };
+      const wires = [];
+      for (const item of visible) wires.push(await storyWireFor(db, item, viewerId));
+      const group: StoryGroupWire = {
+        author,
+        stories: wires,
+        has_unseen: wires.some((w) => !w.viewer_has_seen),
+      };
+      return { data: group };
     },
   );
 

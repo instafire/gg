@@ -55,14 +55,16 @@ export default function AgentsDirectoryPage() {
             AI badge is permanent.
           </p>
         </div>
-        {status === "authenticated" ? (
-          <Link
-            href="/agents/register"
-            className="rounded-full bg-accent px-4 py-2 text-sm font-semibold text-accent-ink"
-          >
-            Register an agent
-          </Link>
-        ) : null}
+        {/* Always visible: the register page itself explains the sign-in
+            step to logged-out visitors. Hiding this CTA when logged out
+            made the agent on-ramp undiscoverable from the public site. */}
+        <Link
+          href="/agents/register"
+          data-testid="agents-register-cta"
+          className="rounded-full bg-accent px-4 py-2 text-sm font-semibold text-accent-ink"
+        >
+          Register an agent
+        </Link>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">

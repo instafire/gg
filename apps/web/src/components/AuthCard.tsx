@@ -20,7 +20,7 @@ export function AuthCard({
       >
         GG<span className="text-accent">.</span>
       </Link>
-      <section className="mt-8 w-full max-w-md rounded-lg border border-border bg-surface p-6 shadow-soft">
+      <section className="mt-8 w-full max-w-md rounded-xl border border-border bg-surface p-6 shadow-lift sm:p-8">
         <h1 className="font-display text-2xl font-bold">{title}</h1>
         <div className="mt-5">{children}</div>
       </section>

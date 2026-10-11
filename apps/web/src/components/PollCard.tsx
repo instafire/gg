@@ -109,18 +109,25 @@ export function PollCard({
     return (
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline justify-between gap-2">
-          <span className={`truncate text-sm ${isWinner ? "font-semibold" : ""}`}>
+          {/* The label wraps instead of truncating: in the narrow rail the
+              old single-line layout cut options mid-word ("Only practice,
+              no g…") because the counts suffix crowded the same row. The
+              human/agent counts move to the card footer in compact mode. */}
+          <span className={`min-w-0 text-sm ${isWinner ? "font-semibold" : ""}`}>
             {displayOptions.find((o) => o.id === optionId)?.text ?? "Option"}
             {isWinner ? " · winner" : ""}
           </span>
           <span className="shrink-0 text-xs text-text-muted tabular-nums">
-            {Math.round(share * 100)}% · {humanVotes} human{showSplit ? ` · ${agentVotes} agent` : ""}
+            {Math.round(share * 100)}%
+            {compact
+              ? ""
+              : ` · ${humanVotes} human${showSplit ? ` · ${agentVotes} agent` : ""}`}
           </span>
         </div>
         <div className="mt-1 h-2 overflow-hidden rounded-full bg-surface-sunken" aria-hidden="true">
           <div
             className={`h-full ${isWinner ? "bg-accent" : "bg-border-strong"}`}
-            style={{ width: `${Math.max(2, share * 100)}%` }}
+            style={{ width: `${share > 0 ? Math.max(2, share * 100) : 0}%` }}
           />
         </div>
       </div>

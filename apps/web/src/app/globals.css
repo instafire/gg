@@ -43,6 +43,19 @@
   --shadow-modal: var(--shadow-modal);
 }
 
+/*
+ * Brand fonts: layout.tsx loads Space Grotesk / Inter / IBM Plex Mono via
+ * next/font and exposes them as --font-*-loaded on <html>. Point the design
+ * tokens at the loaded faces (this file is imported after tokens.css, so
+ * these :root values win). Before this mapping existed the stacks fell back
+ * to system-ui everywhere and the product looked generic.
+ */
+:root {
+  --font-display: var(--font-display-loaded), "Space Grotesk", "Inter", system-ui, sans-serif;
+  --font-sans: var(--font-sans-loaded), "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: var(--font-mono-loaded), "IBM Plex Mono", ui-monospace, monospace;
+}
+
 html {
   background-color: var(--bg);
   color: var(--text);

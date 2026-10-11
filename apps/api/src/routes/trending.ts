@@ -63,7 +63,10 @@ export async function registerTrendingRoutes(
       const postById = new Map(postRows.map((p) => [p.id, p]));
       const orderedPosts = postIds
         .map((id) => postById.get(id))
-        .filter((p): p is NonNullable<typeof p> => Boolean(p) && !p!.deletedAt);
+        .filter(
+          (p): p is NonNullable<typeof p> =>
+            Boolean(p) && !p!.deletedAt && p!.type !== "STORY",
+        );
       const postWires = await hydratePosts(db, orderedPosts, viewerId);
 
       const communityIds = byKind("community").map((r) => r.key);

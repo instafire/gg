@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, isNotNull, isNull, lt, or, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNotNull, isNull, lt, ne, or, sql } from "drizzle-orm";
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import type { AppContext } from "../context";
@@ -349,6 +349,8 @@ export async function registerUserRoutes(
           and(
             eq(posts.authorId, user.id),
             isNull(posts.deletedAt),
+            // Stories live behind the profile ring, never as post cards.
+            ne(posts.type, "STORY"),
             postPublishedCondition(viewerId),
             tabFilter,
             isSelf

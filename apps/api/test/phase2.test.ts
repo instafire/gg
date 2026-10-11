@@ -459,6 +459,62 @@ describe("stories (Phase 2)", () => {
     expect(page.data.length).toBe(1);
   });
 
+  it("serves the author's active story group for the profile ring", async () => {
+    const res = await app.inject({
+      method: "GET",
+      url: `/api/v1/users/p2alice_${suffix}/stories`,
+      headers: auth(tokenB),
+    });
+    expect(res.statusCode).toBe(200);
+    const group = (
+      res.json() as {
+        data: {
+          author: { id: string };
+          stories: { id: string }[];
+          has_unseen: boolean;
+        } | null;
+      }
+    ).data;
+    expect(group?.author.id).toBe(userIdA);
+    expect(group?.stories.some((s) => s.id === storyId)).toBe(true);
+    // Bob already viewed the only frame in the previous test.
+    expect(group?.has_unseen).toBe(false);
+
+    // …and the story must NOT leak into post feeds as an empty card
+    // (regression: stories are posts rows and used to surface in /feed).
+    const homeFeed = await app.inject({
+      method: "GET",
+      url: "/api/v1/feed/home",
+      headers: auth(tokenB),
+    });
+    const feedItems = (
+      homeFeed.json() as { data: { post: { id: string; type: string } }[] }
+    ).data;
+    expect(feedItems.some((item) => item.post.id === storyId)).toBe(false);
+    expect(feedItems.some((item) => item.post.type === "STORY")).toBe(false);
+    const profilePosts = await app.inject({
+      method: "GET",
+      url: `/api/v1/users/p2alice_${suffix}/posts?tab=posts`,
+      headers: auth(tokenB),
+    });
+    const tabItems = (profilePosts.json() as { data: { id: string; type: string }[] }).data;
+    expect(tabItems.some((p) => p.type === "STORY")).toBe(false);
+
+    const noStory = await app.inject({
+      method: "GET",
+      url: `/api/v1/users/p2bob_${suffix}/stories`,
+      headers: auth(tokenA),
+    });
+    expect((noStory.json() as { data: unknown }).data).toBeNull();
+
+    const unknown = await app.inject({
+      method: "GET",
+      url: "/api/v1/users/no_such_user_zzz/stories",
+      headers: auth(tokenA),
+    });
+    expect(unknown.statusCode).toBe(404);
+  });
+
   it("expired stories vanish from feed and detail (24h rule)", async () => {
     const { db } = getDb(config.DATABASE_URL);
     await db

@@ -24,7 +24,23 @@ export function StoriesRail() {
   const [openGroup, setOpenGroup] = useState<number | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploadSecs, setUploadSecs] = useState(0);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  // Live elapsed counter while a story uploads/processes, so the wait
+  // reads as progress instead of a freeze.
+  useEffect(() => {
+    if (!uploading) {
+      setUploadSecs(0);
+      return;
+    }
+    const started = Date.now();
+    const timer = setInterval(
+      () => setUploadSecs(Math.floor((Date.now() - started) / 1000)),
+      1000,
+    );
+    return () => clearInterval(timer);
+  }, [uploading]);
 
   const refresh = useCallback(async () => {
     try {
@@ -45,8 +61,12 @@ export function StoriesRail() {
     try {
       const media = await api.uploadMedia(file);
       // The pipeline runs in the worker; wait until the frame can post.
+      // Same patience as the post composer: real transcodes on the staging
+      // host take a minute or more, and the old 120s cap misreported them
+      // as failures ("stuck at processing").
       let ready = media;
-      for (let attempt = 0; attempt < 80 && ready.status !== "ready"; attempt += 1) {
+      const deadline = Date.now() + 10 * 60 * 1000;
+      while (ready.status !== "ready" && Date.now() < deadline) {
         if (ready.status === "failed" || ready.status === "rejected") break;
         await new Promise((resolve) => setTimeout(resolve, 1500));
         ready = await api.getMedia(media.id);
@@ -133,7 +153,8 @@ export function StoriesRail() {
       </div>
       {uploading ? (
         <p className="mt-1 text-xs text-text-muted" role="status">
-          Posting your story…
+          Posting your story… {uploadSecs > 0 ? `${uploadSecs}s — ` : ""}media is
+          processed before it can go live; a short video can take a minute.
         </p>
       ) : null}
       {uploadError ? (

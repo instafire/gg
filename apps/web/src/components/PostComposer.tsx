@@ -21,6 +21,8 @@ interface Attachment {
   status: "uploading" | "processing" | "ready" | "error";
   mediaId: string | null;
   error: string | null;
+  /** When pipeline processing started (ms epoch) — drives the elapsed timer. */
+  processingSince: number | null;
 }
 
 /**
@@ -60,6 +62,15 @@ export function PostComposer({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const aliveRef = useRef(true);
+  // 1s ticker so "Processing…" can show a live elapsed time instead of
+  // looking frozen (the old static label read as "stuck" within seconds).
+  const [nowTick, setNowTick] = useState(() => Date.now());
+  const anyProcessing = attachments.some((a) => a.status === "processing");
+  useEffect(() => {
+    if (!anyProcessing) return;
+    const timer = setInterval(() => setNowTick(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, [anyProcessing]);
   const errorId = useId();
   const fieldId = useId();
 
@@ -94,13 +105,20 @@ export function PostComposer({
   }
 
   async function pollUntilReady(key: string, mediaId: string) {
-    for (let attempt = 0; attempt < 80; attempt += 1) {
+    // The pipeline runs on a small host: a 90s video can legitimately take
+    // a minute or two to transcode, and big photos take real seconds too.
+    // The old 120s cap declared files dead while they were still encoding,
+    // which read as "stuck at processing". Poll patiently (10 min), keep
+    // the elapsed timer visible, and only fail on a terminal media status.
+    const deadline = Date.now() + 10 * 60 * 1000;
+    for (;;) {
       await new Promise((resolve) => setTimeout(resolve, 1500));
       if (!aliveRef.current) return;
       let media: MediaView;
       try {
         media = await api.getMedia(mediaId);
       } catch {
+        if (Date.now() > deadline) break;
         continue;
       }
       if (media.status === "ready") {
@@ -117,8 +135,12 @@ export function PostComposer({
         });
         return;
       }
+      if (Date.now() > deadline) break;
     }
-    patchAttachment(key, { status: "error", error: "Processing timed out." });
+    patchAttachment(key, {
+      status: "error",
+      error: "Still processing after 10 minutes. Remove it and try again, or try a smaller file.",
+    });
   }
 
   async function addFiles(files: FileList | null) {
@@ -142,6 +164,7 @@ export function PostComposer({
         status: "uploading",
         mediaId: null,
         error: null,
+        processingSince: null,
       };
       setAttachments((current) => [...current, attachment]);
       try {
@@ -149,7 +172,12 @@ export function PostComposer({
           kind,
           onProgress: (fraction) => patchAttachment(key, { progress: fraction }),
         });
-        patchAttachment(key, { mediaId: media.id, status: "processing", progress: 1 });
+        patchAttachment(key, {
+          mediaId: media.id,
+          status: "processing",
+          progress: 1,
+          processingSince: Date.now(),
+        });
         void pollUntilReady(key, media.id);
       } catch (cause) {
         patchAttachment(key, {
@@ -328,7 +356,16 @@ export function PostComposer({
                   </p>
                 ) : attachment.status === "processing" ? (
                   <p className="mt-1 text-xs text-text-muted" role="status">
-                    Processing…
+                    Processing…{" "}
+                    {attachment.processingSince
+                      ? `${Math.max(0, Math.floor((nowTick - attachment.processingSince) / 1000))}s`
+                      : ""}
+                    <span className="block sm:inline">
+                      {" "}
+                      — {attachment.kind === "video"
+                        ? "videos are transcoded before they can post; a short clip usually takes under a minute."
+                        : "large photos can take a few seconds."}
+                    </span>
                   </p>
                 ) : attachment.status === "error" ? (
                   <p className="mt-1 text-xs text-danger" role="alert">
@@ -357,7 +394,9 @@ export function PostComposer({
                     aria-label={`Upload progress for ${attachment.name}`}
                   >
                     <div
-                      className="h-full bg-accent transition-all"
+                      className={`h-full bg-accent transition-all ${
+                        attachment.status === "processing" ? "animate-pulse" : ""
+                      }`}
                       style={{ width: `${Math.round(attachment.progress * 100)}%` }}
                     />
                   </div>
@@ -427,6 +466,10 @@ export function PostComposer({
             {Math.abs(remaining)} over the limit
           </span>
         ) : null}
+        {/* Hidden at rest: an empty composer showed an unexplained hollow
+            circle next to the Post button. Appears once typing starts or
+            the limit nears. */}
+        {length > 0 || showCount ? (
         <span className="relative flex h-7 w-7 items-center justify-center" aria-hidden="true">
           <svg width="28" height="28" viewBox="0 0 28 28" className="-rotate-90">
             <circle cx="14" cy="14" r="10" fill="none" stroke="var(--border)" strokeWidth="2.5" />
@@ -443,6 +486,7 @@ export function PostComposer({
             />
           </svg>
         </span>
+        ) : null}
         {showCount ? (
           <span
             className={`font-mono text-sm tabular-nums ${overLimit ? "text-danger" : "text-text-muted"}`}

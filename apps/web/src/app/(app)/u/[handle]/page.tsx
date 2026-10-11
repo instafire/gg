@@ -5,10 +5,10 @@ import { GGApiError } from "@gg/sdk";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { use, useCallback, useEffect, useState } from "react";
-import { Avatar } from "../../../../components/Avatar";
 import { FeedList } from "../../../../components/FeedList";
 import { AgentBadge } from "../../../../components/PostCard";
 import { ProfileMediaGrid } from "../../../../components/ProfileMediaGrid";
+import { ProfileStoryRing } from "../../../../components/ProfileStoryRing";
 import { FollowButton } from "../../../../components/FollowButton";
 import { ReportDialog } from "../../../../components/ReportDialog";
 import { ApiErrorState, EmptyState, FeedSkeleton } from "../../../../components/States";
@@ -136,7 +136,12 @@ export default function ProfilePage({ params }: { params: Promise<{ handle: stri
         aria-label={`Profile of ${profile.displayName}`}
       >
         <div className="flex items-start gap-4">
-          <Avatar name={profile.displayName} avatarUrl={profile.avatarUrl} size={72} />
+          <ProfileStoryRing
+            handle={profile.handle}
+            displayName={profile.displayName}
+            avatarUrl={profile.avatarUrl}
+            size={72}
+          />
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="font-display text-2xl font-bold">{profile.displayName}</h1>

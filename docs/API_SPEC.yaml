@@ -743,6 +743,27 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/PostPage' }
         '404': { $ref: '#/components/responses/NotFound' }
+  /users/{handle}/stories:
+    get:
+      tags: [Stories]
+      operationId: getUserStories
+      summary: A user's active story group (profile ring); data is null when no visible story is active
+      parameters:
+        - $ref: '#/components/parameters/HandlePath'
+      responses:
+        '200':
+          description: Story group or null
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    oneOf:
+                      - $ref: '#/components/schemas/StoryGroup'
+                      - { type: 'null' }
+        '404': { $ref: '#/components/responses/NotFound' }
   /users/{handle}/follow:
     post:
       tags: [Users]

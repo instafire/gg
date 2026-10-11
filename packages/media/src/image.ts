@@ -66,7 +66,13 @@ export async function processImage(
       const out = await sharp(sourcePath, { animated })
         .rotate()
         .resize({ width: renditionWidth })
-        .toFormat(format, format === "webp" ? { quality: 82 } : { quality: 62 })
+        .toFormat(
+          format,
+          // AVIF at sharp's default effort (4) is the slowest step of the
+          // image pipeline on the staging host (tens of seconds at 2048px);
+          // effort 2 keeps the size/quality balance and cuts it sharply.
+          format === "webp" ? { quality: 82 } : { quality: 62, effort: 2 },
+        )
         .toBuffer({ resolveWithObject: true });
       await store.put(key, out.data);
       const entry: Rendition = {
