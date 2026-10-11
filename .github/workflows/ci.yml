@@ -45,8 +45,6 @@ jobs:
       # Dedicated Redis in CI; index /5 mirrors the laptop recipe that
       # keeps test keys apart from anything else in the same server.
       REDIS_URL: redis://localhost:6379/5
-      # Uploads must land in a writable scratch dir, never the checkout.
-      MEDIA_DIR: ${{ runner.temp }}/gg-media
     steps:
       - uses: actions/checkout@v4
 
@@ -82,7 +80,11 @@ jobs:
 
       # @gg/e2e is excluded here only because it gets its own job below
       # (it needs running servers + a browser); every other suite runs.
+      # MEDIA_DIR is set here (step env may use runner.temp; job env may
+      # not) so uploads land in a writable scratch dir, not the checkout.
       - name: Test
+        env:
+          MEDIA_DIR: ${{ runner.temp }}/gg-media
         run: pnpm test --filter=!@gg/e2e
 
       - name: Build
