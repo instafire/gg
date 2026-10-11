@@ -45,6 +45,8 @@ jobs:
       # Dedicated Redis in CI; index /5 mirrors the laptop recipe that
       # keeps test keys apart from anything else in the same server.
       REDIS_URL: redis://localhost:6379/5
+      # Uploads must land in a writable scratch dir, never the checkout.
+      MEDIA_DIR: ${{ runner.temp }}/gg-media
     steps:
       - uses: actions/checkout@v4
 

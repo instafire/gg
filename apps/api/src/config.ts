@@ -64,7 +64,7 @@ const envSchema = z.object({
   MIN_AGE: z.coerce.number().int().min(1).default(13),
   // ── Media (Phase 2) ──────────────────────────────────────────────────────
   /** Root dir of the local storage adapter (ARCHITECTURE §6, D-025). */
-  MEDIA_DIR: z.string().min(1).default("/home/aman/gg-dev/media"),
+  MEDIA_DIR: z.string().min(1).default("./media-data"),
   /** API_SPEC UploadCreateRequest: images ≤ 25 MB. */
   MEDIA_MAX_IMAGE_BYTES: z.coerce.number().int().positive().default(25 * 1024 * 1024),
   /** API_SPEC UploadCreateRequest: video ≤ 2 GB (D-026). */

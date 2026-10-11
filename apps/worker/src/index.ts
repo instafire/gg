@@ -196,7 +196,7 @@ function startMediaConsumers(): { workers: Worker[] } | null {
     );
     return null;
   }
-  const mediaDir = process.env.MEDIA_DIR ?? "/home/aman/gg-dev/media";
+  const mediaDir = process.env.MEDIA_DIR ?? "./media-data";
   const store = new LocalStorageAdapter(mediaDir);
   const { db } = createWorkerDb(databaseUrl);
   const mediaRepo = drizzleMediaRepo(db);
